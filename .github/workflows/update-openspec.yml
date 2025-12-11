@@ -1,0 +1,99 @@
+name: Update OpenSpec Formula
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Get latest GitHub release
+        id: github_release
+        run: |
+          RELEASE_INFO=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/Fission-AI/OpenSpec/releases/latest)
+          TAG_NAME=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
+          VERSION=$(echo "$TAG_NAME" | sed 's/^v//')
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Latest release: $TAG_NAME (version: $VERSION)"
+
+      - name: Get current formula version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(grep 'VERSION = "' Formula/openspec.rb | sed -E 's/.*"([^"]+)".*/\1/')
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current formula version: $CURRENT_VERSION"
+
+      - name: Check if update is needed
+        id: check_update
+        run: |
+          if [ "${{ steps.current_version.outputs.current_version }}" = "${{ steps.github_release.outputs.version }}" ]; then
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "Versions match. No update needed."
+          else
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "Update needed: ${{ steps.current_version.outputs.current_version }} -> ${{ steps.github_release.outputs.version }}"
+          fi
+
+      - name: Get npm package tarball URL and calculate SHA256
+        if: steps.check_update.outputs.update_needed == 'true'
+        id: npm_package
+        run: |
+          VERSION="${{ steps.github_release.outputs.version }}"
+          TARBALL_URL="https://registry.npmjs.org/@fission-ai/openspec/-/openspec-${VERSION}.tgz"
+          
+          echo "Downloading tarball to calculate checksum..."
+          curl -sL "$TARBALL_URL" -o openspec.tgz
+          
+          SHA256=$(shasum -a 256 openspec.tgz | awk '{print $1}')
+          
+          echo "tarball_url=$TARBALL_URL" >> $GITHUB_OUTPUT
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "SHA256: $SHA256"
+
+      - name: Update formula
+        if: steps.check_update.outputs.update_needed == 'true'
+        run: |
+          VERSION="${{ steps.github_release.outputs.version }}"
+          SHA256="${{ steps.npm_package.outputs.sha256 }}"
+
+          # Update VERSION constant and sha256; URL and version use the VERSION constant
+          sed -i "s/^  VERSION = \".*\"/  VERSION = \"$VERSION\"/" Formula/openspec.rb
+          sed -i "s/^  sha256 \".*\"/  sha256 \"$SHA256\"/" Formula/openspec.rb
+
+          echo "Formula updated to version $VERSION"
+
+      - name: Commit and push changes
+        if: steps.check_update.outputs.update_needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/openspec.rb
+          git commit -m "Update openspec to ${{ steps.github_release.outputs.version }}"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.check_update.outputs.update_needed }}" = "true" ]; then
+            echo "✅ Formula updated to version ${{ steps.github_release.outputs.version }}"
+          else
+            echo "ℹ️ Formula is already up to date (version ${{ steps.github_release.outputs.version }})"
+          fi
+

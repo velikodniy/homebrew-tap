@@ -1,4 +1,4 @@
-# Velikodniy Tap
+# Vadim's Homebrew Taps
 
 ## How do I install these formulae?
 
@@ -13,6 +13,10 @@ tap "velikodniy/tap"
 brew "<formula>"
 ```
 
-## Documentation
+## Available Formulae
 
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+- [openspec](https://openspec.dev) — Spec-driven development for AI coding assistants  
+
+  ```sh
+  brew install velikodniy/tap/openspec
+  ```

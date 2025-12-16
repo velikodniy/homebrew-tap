@@ -47,11 +47,13 @@ jobs:
           elif [ "$EVENT_NAME" = "repository_dispatch" ] && [ -n "$PAYLOAD_TAG" ]; then
             TAG="$PAYLOAD_TAG"
           else
-            TAG=$(curl -s https://api.github.com/repos/$TOOL_REPO/releases/latest | python -c 'import sys, json; print(json.load(sys.stdin)["tag_name"])')
+            TAG="$(curl -sL "https://api.github.com/repos/${TOOL_REPO}/releases/latest" | python -c 'import sys, json; print(json.load(sys.stdin)["tag_name"])')"
           fi
           VERSION="${TAG#v}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
           printf 'Latest tag: %s (version %s)\n' "$TAG" "$VERSION"
 
       - name: Read current formula version
@@ -83,24 +85,26 @@ jobs:
         if: steps.check.outputs.update == 'true'
         id: sha
         run: |
-          parse() { grep " $2$" checksums.txt | awk '{print $1}'; }
-          MAC_ARM=$(parse cgt-tool-macos-aarch64)
-          MAC_INTEL=$(parse cgt-tool-macos-x86_64)
-          LINUX_ARM=$(parse cgt-tool-linux-aarch64)
-          LINUX_INTEL=$(parse cgt-tool-linux-x86_64)
+          parse() { awk -v f="$1" '$2 == f { print $1 }' checksums.txt; }
+          MAC_ARM="$(parse "cgt-tool-macos-aarch64")"
+          MAC_INTEL="$(parse "cgt-tool-macos-x86_64")"
+          LINUX_ARM="$(parse "cgt-tool-linux-aarch64")"
+          LINUX_INTEL="$(parse "cgt-tool-linux-x86_64")"
 
           for name in MAC_ARM MAC_INTEL LINUX_ARM LINUX_INTEL; do
-            value=${!name}
+            value="${!name}"
             if [ -z "$value" ]; then
               echo "Missing checksum for $name"
               exit 1
             fi
           done
 
-          echo "mac_arm=$MAC_ARM" >> "$GITHUB_OUTPUT"
-          echo "mac_intel=$MAC_INTEL" >> "$GITHUB_OUTPUT"
-          echo "linux_arm=$LINUX_ARM" >> "$GITHUB_OUTPUT"
-          echo "linux_intel=$LINUX_INTEL" >> "$GITHUB_OUTPUT"
+          {
+            echo "mac_arm=$MAC_ARM"
+            echo "mac_intel=$MAC_INTEL"
+            echo "linux_arm=$LINUX_ARM"
+            echo "linux_intel=$LINUX_INTEL"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Rewrite formula
         if: steps.check.outputs.update == 'true'

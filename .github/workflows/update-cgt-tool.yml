@@ -179,7 +179,7 @@ jobs:
         run: |
           git add "$FORMULA_PATH"
           git commit -m "Update cgt-tool to $TAG"
-          git push
+          git push origin main
 
       - name: Summary
         run: |

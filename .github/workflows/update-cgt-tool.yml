@@ -159,7 +159,6 @@ jobs:
             end
           end
           EOF
-          sed -i '' 's/^          //' "$FORMULA_PATH"
 
       - name: Audit formula
         if: steps.check.outputs.update == 'true'

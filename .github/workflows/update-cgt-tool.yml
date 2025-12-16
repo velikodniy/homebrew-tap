@@ -1,0 +1,186 @@
+name: Update cgt-tool Formula
+
+on:
+  repository_dispatch:
+    types:
+      - cgt-tool-release
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to use (e.g., v0.1.0). Defaults to latest release.'
+        required: false
+
+jobs:
+  update:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    env:
+      TOOL_REPO: velikodniy/cgt-tool
+      FORMULA_PATH: Formula/cgt-tool.rb
+
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Resolve target release
+        id: release
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          PAYLOAD_TAG: ${{ github.event.client_payload.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            TAG="$INPUT_TAG"
+          elif [ "$EVENT_NAME" = "repository_dispatch" ] && [ -n "$PAYLOAD_TAG" ]; then
+            TAG="$PAYLOAD_TAG"
+          else
+            TAG=$(curl -s https://api.github.com/repos/$TOOL_REPO/releases/latest | python -c 'import sys, json; print(json.load(sys.stdin)["tag_name"])')
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          printf 'Latest tag: %s (version %s)\n' "$TAG" "$VERSION"
+
+      - name: Read current formula version
+        id: current
+        run: |
+          CURRENT_VERSION=$(grep '^  version ' "$FORMULA_PATH" | sed -E 's/.*"([^"]+)"/\1/')
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          printf 'Current formula version: %s\n' "$CURRENT_VERSION"
+
+      - name: Check if update is needed
+        id: check
+        run: |
+          if [ "${{ steps.release.outputs.version }}" = "${{ steps.current.outputs.version }}" ]; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            echo "Formula is up to date"
+          else
+            echo "update=true" >> "$GITHUB_OUTPUT"
+            echo "Update needed: ${{ steps.current.outputs.version }} -> ${{ steps.release.outputs.version }}"
+          fi
+
+      - name: Download checksums
+        if: steps.check.outputs.update == 'true'
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          curl -sL "https://github.com/$TOOL_REPO/releases/download/$TAG/checksums.txt" -o checksums.txt
+          cat checksums.txt
+
+      - name: Parse checksums
+        if: steps.check.outputs.update == 'true'
+        id: sha
+        run: |
+          parse() { grep " $2$" checksums.txt | awk '{print $1}'; }
+          MAC_ARM=$(parse cgt-tool-macos-aarch64)
+          MAC_INTEL=$(parse cgt-tool-macos-x86_64)
+          LINUX_ARM=$(parse cgt-tool-linux-aarch64)
+          LINUX_INTEL=$(parse cgt-tool-linux-x86_64)
+
+          for name in MAC_ARM MAC_INTEL LINUX_ARM LINUX_INTEL; do
+            value=${!name}
+            if [ -z "$value" ]; then
+              echo "Missing checksum for $name"
+              exit 1
+            fi
+          done
+
+          echo "mac_arm=$MAC_ARM" >> "$GITHUB_OUTPUT"
+          echo "mac_intel=$MAC_INTEL" >> "$GITHUB_OUTPUT"
+          echo "linux_arm=$LINUX_ARM" >> "$GITHUB_OUTPUT"
+          echo "linux_intel=$LINUX_INTEL" >> "$GITHUB_OUTPUT"
+
+      - name: Rewrite formula
+        if: steps.check.outputs.update == 'true'
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          VERSION="${{ steps.release.outputs.version }}"
+          MAC_ARM="${{ steps.sha.outputs.mac_arm }}"
+          MAC_INTEL="${{ steps.sha.outputs.mac_intel }}"
+          LINUX_ARM="${{ steps.sha.outputs.linux_arm }}"
+          LINUX_INTEL="${{ steps.sha.outputs.linux_intel }}"
+
+          cat > "$FORMULA_PATH" <<EOF
+          # typed: false
+          # frozen_string_literal: true
+
+          class CgtTool < Formula
+            desc "CLI for UK Capital Gains Tax calculation"
+            homepage "https://github.com/velikodniy/cgt-tool"
+            version "$VERSION"
+            license "AGPL-3.0-or-later"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-macos-aarch64"
+                sha256 "$MAC_ARM"
+              end
+              on_intel do
+                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-macos-x86_64"
+                sha256 "$MAC_INTEL"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-linux-aarch64"
+                sha256 "$LINUX_ARM"
+              end
+              on_intel do
+                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-linux-x86_64"
+                sha256 "$LINUX_INTEL"
+              end
+            end
+
+            def install
+              binary = Dir["cgt-tool-*"]&.first
+              odie "binary not found" unless binary
+              bin.install binary => "cgt-tool"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("\#{bin}/cgt-tool --version")
+            end
+          end
+          EOF
+
+      - name: Audit formula
+        if: steps.check.outputs.update == 'true'
+        run: |
+          brew audit --strict --tap "$GITHUB_REPOSITORY" cgt-tool
+
+      - name: Smoke install
+        if: steps.check.outputs.update == 'true'
+        run: |
+          brew uninstall --force cgt-tool || true
+          brew install "$GITHUB_REPOSITORY"/cgt-tool
+          cgt-tool --version
+
+      - name: Commit and push changes
+        if: steps.check.outputs.update == 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git add "$FORMULA_PATH"
+          git commit -m "Update cgt-tool to $TAG"
+          git push
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check.outputs.update }}" = "true" ]; then
+            echo "Updated formula to ${{ steps.release.outputs.tag }}"
+          else
+            echo "No update needed"
+          fi

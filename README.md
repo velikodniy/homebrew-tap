@@ -15,8 +15,7 @@ brew "<formula>"
 
 ## Available Formulae
 
-- [openspec](https://openspec.dev) — Spec-driven development for AI coding assistants  
-
-  ```sh
-  brew install velikodniy/tap/openspec
-  ```
+| Formula | Description | Install |
+| --- | --- | --- |
+| [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
+| [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |

@@ -108,14 +108,14 @@ jobs:
 
       - name: Rewrite formula
         if: steps.check.outputs.update == 'true'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+          MAC_ARM: ${{ steps.sha.outputs.mac_arm }}
+          MAC_INTEL: ${{ steps.sha.outputs.mac_intel }}
+          LINUX_ARM: ${{ steps.sha.outputs.linux_arm }}
+          LINUX_INTEL: ${{ steps.sha.outputs.linux_intel }}
         run: |
-          TAG="${{ steps.release.outputs.tag }}"
-          VERSION="${{ steps.release.outputs.version }}"
-          MAC_ARM="${{ steps.sha.outputs.mac_arm }}"
-          MAC_INTEL="${{ steps.sha.outputs.mac_intel }}"
-          LINUX_ARM="${{ steps.sha.outputs.linux_arm }}"
-          LINUX_INTEL="${{ steps.sha.outputs.linux_intel }}"
-
           cat > "$FORMULA_PATH" <<EOF
           # typed: false
           # frozen_string_literal: true
@@ -159,6 +159,7 @@ jobs:
             end
           end
           EOF
+          sed -i '' 's/^          //' "$FORMULA_PATH"
 
       - name: Audit formula
         if: steps.check.outputs.update == 'true'

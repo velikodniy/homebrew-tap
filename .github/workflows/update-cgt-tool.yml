@@ -41,13 +41,14 @@ jobs:
           INPUT_TAG: ${{ github.event.inputs.tag }}
           PAYLOAD_TAG: ${{ github.event.client_payload.tag }}
           EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "$INPUT_TAG" ]; then
             TAG="$INPUT_TAG"
           elif [ "$EVENT_NAME" = "repository_dispatch" ] && [ -n "$PAYLOAD_TAG" ]; then
             TAG="$PAYLOAD_TAG"
           else
-            TAG="$(curl -sL "https://api.github.com/repos/${TOOL_REPO}/releases/latest" | python -c 'import sys, json; print(json.load(sys.stdin)["tag_name"])')"
+            TAG="$(gh release view --repo "$TOOL_REPO" --json tagName -q '.tagName')"
           fi
           VERSION="${TAG#v}"
           {

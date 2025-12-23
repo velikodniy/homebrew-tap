@@ -19,3 +19,4 @@ brew "<formula>"
 | --- | --- | --- |
 | [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |
+| [termshark](https://github.com/gcla/termshark) | Terminal UI for tshark, inspired by Wireshark | `brew install velikodniy/tap/termshark` |

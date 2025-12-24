@@ -7,6 +7,7 @@ class Termshark < Formula
   version "2.4.0"
   license "MIT"
 
+  depends_on :macos
   depends_on "wireshark"
 
   on_macos do

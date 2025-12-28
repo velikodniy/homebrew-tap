@@ -79,8 +79,9 @@ jobs:
         if: steps.check.outputs.update == 'true'
         run: |
           TAG="${{ steps.release.outputs.tag }}"
-          curl -sL "https://github.com/$TOOL_REPO/releases/download/$TAG/checksums.txt" -o checksums.txt
-          cat checksums.txt
+          for file in cgt-tool-macos-aarch64.sha256 cgt-tool-macos-x86_64.sha256 cgt-tool-linux-aarch64.sha256 cgt-tool-linux-x86_64.sha256; do
+            curl -sL "https://github.com/$TOOL_REPO/releases/download/$TAG/$file" -o "$file"
+          done
 
       - name: Parse checksums
         if: steps.check.outputs.update == 'true'

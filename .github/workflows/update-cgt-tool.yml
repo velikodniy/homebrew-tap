@@ -86,20 +86,10 @@ jobs:
         if: steps.check.outputs.update == 'true'
         id: sha
         run: |
-          parse() { awk -v f="$1" '$2 == f { print $1 }' checksums.txt; }
-          MAC_ARM="$(parse "cgt-tool-macos-aarch64")"
-          MAC_INTEL="$(parse "cgt-tool-macos-x86_64")"
-          LINUX_ARM="$(parse "cgt-tool-linux-aarch64")"
-          LINUX_INTEL="$(parse "cgt-tool-linux-x86_64")"
-
-          for name in MAC_ARM MAC_INTEL LINUX_ARM LINUX_INTEL; do
-            value="${!name}"
-            if [ -z "$value" ]; then
-              echo "Missing checksum for $name"
-              exit 1
-            fi
-          done
-
+          MAC_ARM="$(cat cgt-tool-macos-aarch64.sha256)"
+          MAC_INTEL="$(cat cgt-tool-macos-x86_64.sha256)"
+          LINUX_ARM="$(cat cgt-tool-linux-aarch64.sha256)"
+          LINUX_INTEL="$(cat cgt-tool-linux-x86_64.sha256)"
           {
             echo "mac_arm=$MAC_ARM"
             echo "mac_intel=$MAC_INTEL"

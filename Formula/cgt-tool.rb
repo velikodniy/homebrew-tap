@@ -4,28 +4,28 @@
 class CgtTool < Formula
   desc "CLI for UK Capital Gains Tax calculation"
   homepage "https://github.com/velikodniy/cgt-tool"
-  version "0.7.1"
+  version "0.7.3"
   license "AGPL-3.0-or-later"
 
   on_macos do
     on_arm do
-      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.1/cgt-tool-macos-aarch64"
-      sha256 "01926508950b3dd4a875e3133efc4f3e733b0524b1cbaa1451aab60ae7852306"
+      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-macos-aarch64"
+      sha256 "43cc0235011339e193e83ecdb1185e261a6680042456884a4ecf4c844aeb7368"
     end
     on_intel do
-      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.1/cgt-tool-macos-x86_64"
-      sha256 "eea28b0d8e0330d52575dd59e9f8ff8e0544b05c47c20de9a57a14f3c78f5dda"
+      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-macos-x86_64"
+      sha256 "781b43fe9d444dd20e154eac6c46d774beb5668e42eea3af09434a0a1581b661"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.1/cgt-tool-linux-aarch64"
-      sha256 "b76772170366e4847d5401f72226a0bfc4142c4790b36e290f740e201a7798df"
+      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-linux-aarch64"
+      sha256 "1baeed648548d108a071a44b59686ac5e50a4a5abb627954bfc6139e64ca0d00"
     end
     on_intel do
-      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.1/cgt-tool-linux-x86_64"
-      sha256 "4b14b8cd9f1f9991d4dadd836f6f88755430939ed4cba55d300bc6fee24549ae"
+      url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-linux-x86_64"
+      sha256 "9df6df81aae9759e9c5365b0a58ad2f2eca0a0dd30a09721e6f518b26da5b46d"
     end
   end
 

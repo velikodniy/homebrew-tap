@@ -57,8 +57,6 @@ jobs:
           sed -i "/cgt-tool-macos-x86_64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_INTEL_SHA256}\"|}" Formula/cgt-tool.rb
           sed -i "/cgt-tool-linux-aarch64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_ARM_SHA256}\"|}" Formula/cgt-tool.rb
           sed -i "/cgt-tool-linux-x86_64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_INTEL_SHA256}\"|}" Formula/cgt-tool.rb
-      - name: Run tests
-        uses: ./.github/workflows/tests.yml
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:

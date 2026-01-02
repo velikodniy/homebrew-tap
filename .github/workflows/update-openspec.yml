@@ -27,7 +27,7 @@ jobs:
         run: |
           VERSION="${{ steps.github-release.outputs.version }}"
           TARBALL_URL="https://registry.npmjs.org/@fission-ai/openspec/-/openspec-${VERSION}.tgz"
-          SHA256="$(curl -sL "$TARBALL_URL" | sha256sum | cut -d' ' -f1)"
+          SHA256="$(curl -sL "$TARBALL_URL" | sha256sum | awk '{print $1}')"
           printf 'sha256=%s\n' "$SHA256" >> "$GITHUB_OUTPUT"
       - name: Update formula
         env:

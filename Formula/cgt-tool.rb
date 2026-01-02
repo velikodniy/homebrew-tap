@@ -10,22 +10,22 @@ class CgtTool < Formula
   on_macos do
     on_arm do
       url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-macos-aarch64"
-      sha256 "43cc0235011339e193e83ecdb1185e261a6680042456884a4ecf4c844aeb7368"
+      sha256 "5c6ee263f1284928de1709ee44dd7580262168be0d34240557d978531562ce70"
     end
     on_intel do
       url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-macos-x86_64"
-      sha256 "781b43fe9d444dd20e154eac6c46d774beb5668e42eea3af09434a0a1581b661"
+      sha256 "b51b47e140c6f81560271752db7d1627d8662d3afd1375fd5a9a04b4380f6824"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-linux-aarch64"
-      sha256 "1baeed648548d108a071a44b59686ac5e50a4a5abb627954bfc6139e64ca0d00"
+      sha256 "5557f55fe1d619c760d6929ddb006d2ef1e90aeb4f33159d42ae728c921986d0"
     end
     on_intel do
       url "https://github.com/velikodniy/cgt-tool/releases/download/v0.7.3/cgt-tool-linux-x86_64"
-      sha256 "9df6df81aae9759e9c5365b0a58ad2f2eca0a0dd30a09721e6f518b26da5b46d"
+      sha256 "530fff75c64e7810a359f659f72be0b11083773756ce3efda9355e4249acb6a1"
     end
   end
 

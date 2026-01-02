@@ -5,178 +5,64 @@ on:
     types:
       - cgt-tool-release
   schedule:
-    - cron: '0 3 * * *'
+    - cron: "0 3 * * *"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag to use (e.g., v0.1.0). Defaults to latest release.'
-        required: false
 
 jobs:
   update:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-
-    env:
-      TOOL_REPO: velikodniy/cgt-tool
-      FORMULA_PATH: Formula/cgt-tool.rb
-
     steps:
-      - name: Checkout tap
-        uses: actions/checkout@v4
-
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up git
-        uses: Homebrew/actions/git-user-config@main
-
-      - name: Resolve target release
-        id: release
+      - name: Checkout tap repository
+        uses: actions/checkout@v6
+      - name: Get latest GitHub release
+        id: github-release
         env:
-          INPUT_TAG: ${{ github.event.inputs.tag }}
-          PAYLOAD_TAG: ${{ github.event.client_payload.tag }}
-          EVENT_NAME: ${{ github.event_name }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "$INPUT_TAG" ]; then
-            TAG="$INPUT_TAG"
-          elif [ "$EVENT_NAME" = "repository_dispatch" ] && [ -n "$PAYLOAD_TAG" ]; then
-            TAG="$PAYLOAD_TAG"
-          else
-            TAG="$(gh release view --repo "$TOOL_REPO" --json tagName -q '.tagName')"
-          fi
-          VERSION="${TAG#v}"
-          {
-            echo "tag=$TAG"
-            echo "version=$VERSION"
-          } >> "$GITHUB_OUTPUT"
-          printf 'Latest tag: %s (version %s)\n' "$TAG" "$VERSION"
-
-      - name: Read current formula version
-        id: current
-        run: |
-          CURRENT_VERSION=$(grep '^  version ' "$FORMULA_PATH" | sed -E 's/.*"([^"]+)"/\1/')
-          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
-          printf 'Current formula version: %s\n' "$CURRENT_VERSION"
-
-      - name: Check if update is needed
-        id: check
-        run: |
-          if [ "${{ steps.release.outputs.version }}" = "${{ steps.current.outputs.version }}" ]; then
-            echo "update=false" >> "$GITHUB_OUTPUT"
-            echo "Formula is up to date"
-          else
-            echo "update=true" >> "$GITHUB_OUTPUT"
-            echo "Update needed: ${{ steps.current.outputs.version }} -> ${{ steps.release.outputs.version }}"
-          fi
-
+          TAG_NAME="$(gh api repos/velikodniy/cgt-tool/releases/latest -q '.tag_name')"
+          VERSION="${TAG_NAME#v}"
+          printf 'tag=%s\n' "$TAG_NAME" >> "$GITHUB_OUTPUT"
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$VERSION"
       - name: Download checksums
-        if: steps.check.outputs.update == 'true'
+        id: checksums
+        env:
+          TAG: ${{ steps.github-release.outputs.tag }}
         run: |
-          TAG="${{ steps.release.outputs.tag }}"
-          for file in cgt-tool-macos-aarch64.sha256 cgt-tool-macos-x86_64.sha256 cgt-tool-linux-aarch64.sha256 cgt-tool-linux-x86_64.sha256; do
-            curl -sL "https://github.com/$TOOL_REPO/releases/download/$TAG/$file" -o "$file"
-          done
-
-      - name: Parse checksums
-        if: steps.check.outputs.update == 'true'
-        id: sha
-        run: |
-          MAC_ARM="$(cat cgt-tool-macos-aarch64.sha256)"
-          MAC_INTEL="$(cat cgt-tool-macos-x86_64.sha256)"
-          LINUX_ARM="$(cat cgt-tool-linux-aarch64.sha256)"
-          LINUX_INTEL="$(cat cgt-tool-linux-x86_64.sha256)"
+          BASE_URL="https://github.com/velikodniy/cgt-tool/releases/download/$TAG"
+          MAC_ARM_SHA256="$(curl -sL "$BASE_URL/cgt-tool-macos-aarch64.sha256")"
+          MAC_INTEL_SHA256="$(curl -sL "$BASE_URL/cgt-tool-macos-x86_64.sha256")"
+          LINUX_ARM_SHA256="$(curl -sL "$BASE_URL/cgt-tool-linux-aarch64.sha256")"
+          LINUX_INTEL_SHA256="$(curl -sL "$BASE_URL/cgt-tool-linux-x86_64.sha256")"
           {
-            echo "mac_arm=$MAC_ARM"
-            echo "mac_intel=$MAC_INTEL"
-            echo "linux_arm=$LINUX_ARM"
-            echo "linux_intel=$LINUX_INTEL"
+            echo "mac_arm=$MAC_ARM_SHA256"
+            echo "mac_intel=$MAC_INTEL_SHA256"
+            echo "linux_arm=$LINUX_ARM_SHA256"
+            echo "linux_intel=$LINUX_INTEL_SHA256"
           } >> "$GITHUB_OUTPUT"
-
-      - name: Rewrite formula
-        if: steps.check.outputs.update == 'true'
+      - name: Update formula
         env:
-          TAG: ${{ steps.release.outputs.tag }}
-          VERSION: ${{ steps.release.outputs.version }}
-          MAC_ARM: ${{ steps.sha.outputs.mac_arm }}
-          MAC_INTEL: ${{ steps.sha.outputs.mac_intel }}
-          LINUX_ARM: ${{ steps.sha.outputs.linux_arm }}
-          LINUX_INTEL: ${{ steps.sha.outputs.linux_intel }}
+          TAG: ${{ steps.github-release.outputs.tag }}
+          VERSION: ${{ steps.github-release.outputs.version }}
+          MAC_ARM_SHA256: ${{ steps.checksums.outputs.mac_arm }}
+          MAC_INTEL_SHA256: ${{ steps.checksums.outputs.mac_intel }}
+          LINUX_ARM_SHA256: ${{ steps.checksums.outputs.linux_arm }}
+          LINUX_INTEL_SHA256: ${{ steps.checksums.outputs.linux_intel }}
         run: |
-          cat > "$FORMULA_PATH" <<EOF
-          # typed: false
-          # frozen_string_literal: true
-
-          class CgtTool < Formula
-            desc "CLI for UK Capital Gains Tax calculation"
-            homepage "https://github.com/velikodniy/cgt-tool"
-            version "$VERSION"
-            license "AGPL-3.0-or-later"
-
-            on_macos do
-              on_arm do
-                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-macos-aarch64"
-                sha256 "$MAC_ARM"
-              end
-              on_intel do
-                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-macos-x86_64"
-                sha256 "$MAC_INTEL"
-              end
-            end
-
-            on_linux do
-              on_arm do
-                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-linux-aarch64"
-                sha256 "$LINUX_ARM"
-              end
-              on_intel do
-                url "https://github.com/velikodniy/cgt-tool/releases/download/$TAG/cgt-tool-linux-x86_64"
-                sha256 "$LINUX_INTEL"
-              end
-            end
-
-            def install
-              binary = Dir["cgt-tool-*"]&.first
-              odie "binary not found" unless binary
-              bin.install binary => "cgt-tool"
-            end
-
-            test do
-              assert_match version.to_s, shell_output("\#{bin}/cgt-tool --version")
-            end
-          end
-          EOF
-
-      - name: Audit formula
-        if: steps.check.outputs.update == 'true'
-        run: |
-          brew audit --strict --tap "$GITHUB_REPOSITORY" cgt-tool
-
-      - name: Smoke install
-        if: steps.check.outputs.update == 'true'
-        run: |
-          brew uninstall --force cgt-tool || true
-          brew install "$GITHUB_REPOSITORY"/cgt-tool
-          cgt-tool --version
-
+          sed -i "s|version \"[0-9.]*\"|version \"${VERSION}\"|" Formula/cgt-tool.rb
+          sed -i "s|releases/download/v[0-9.]*/|releases/download/${TAG}/|g" Formula/cgt-tool.rb
+          sed -i "/cgt-tool-macos-aarch64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_ARM_SHA256}\"|}" Formula/cgt-tool.rb
+          sed -i "/cgt-tool-macos-x86_64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_INTEL_SHA256}\"|}" Formula/cgt-tool.rb
+          sed -i "/cgt-tool-linux-aarch64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_ARM_SHA256}\"|}" Formula/cgt-tool.rb
+          sed -i "/cgt-tool-linux-x86_64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_INTEL_SHA256}\"|}" Formula/cgt-tool.rb
+      - name: Run tests
+        uses: ./.github/workflows/tests.yml
       - name: Commit and push changes
-        if: steps.check.outputs.update == 'true'
-        env:
-          TAG: ${{ steps.release.outputs.tag }}
-        run: |
-          git add "$FORMULA_PATH"
-          git commit -m "Update cgt-tool to $TAG"
-          git push origin main
-
-      - name: Summary
-        run: |
-          if [ "${{ steps.check.outputs.update }}" = "true" ]; then
-            echo "Updated formula to ${{ steps.release.outputs.tag }}"
-          else
-            echo "No update needed"
-          fi
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Update cgt-tool to ${{ steps.github-release.outputs.tag }}"
+          file_pattern: Formula/cgt-tool.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

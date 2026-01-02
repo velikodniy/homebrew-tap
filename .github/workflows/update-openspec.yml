@@ -36,6 +36,8 @@ jobs:
         run: |
           sed -i "s|openspec-[0-9.]*\.tgz|openspec-${VERSION}.tgz|" Formula/openspec.rb
           sed -i "s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA256}\"|" Formula/openspec.rb
+      - name: Run tests
+        uses: ./.github/workflows/tests.yml
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:

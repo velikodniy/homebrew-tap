@@ -21,7 +21,6 @@ jobs:
           RELEASE_JSON="$(gh api repos/anomalyco/opencode/releases/latest)"
           TAG_NAME="$(echo "$RELEASE_JSON" | jq -r '.tag_name')"
           VERSION="${TAG_NAME#v}"
-          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
           printf 'Latest release: %s\n' "$VERSION"
 
           get_sha() {
@@ -33,10 +32,13 @@ jobs:
           SHA_LINUX_ARM64="$(get_sha 'opencode-linux-arm64.tar.gz')"
           SHA_LINUX_X64="$(get_sha 'opencode-linux-x64.tar.gz')"
 
-          printf 'sha_darwin_arm64=%s\n' "$SHA_DARWIN_ARM64" >> "$GITHUB_OUTPUT"
-          printf 'sha_darwin_x64=%s\n' "$SHA_DARWIN_X64" >> "$GITHUB_OUTPUT"
-          printf 'sha_linux_arm64=%s\n' "$SHA_LINUX_ARM64" >> "$GITHUB_OUTPUT"
-          printf 'sha_linux_x64=%s\n' "$SHA_LINUX_X64" >> "$GITHUB_OUTPUT"
+          {
+            printf 'version=%s\n' "$VERSION"
+            printf 'sha_darwin_arm64=%s\n' "$SHA_DARWIN_ARM64"
+            printf 'sha_darwin_x64=%s\n' "$SHA_DARWIN_X64"
+            printf 'sha_linux_arm64=%s\n' "$SHA_LINUX_ARM64"
+            printf 'sha_linux_x64=%s\n' "$SHA_LINUX_X64"
+          } >> "$GITHUB_OUTPUT"
       - name: Update formula
         env:
           VERSION: ${{ steps.github-release.outputs.version }}

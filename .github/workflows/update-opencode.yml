@@ -1,0 +1,60 @@
+name: Update OpenCode Formula
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v6
+      - name: Get latest GitHub release
+        id: github-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_JSON="$(gh api repos/anomalyco/opencode/releases/latest)"
+          TAG_NAME="$(echo "$RELEASE_JSON" | jq -r '.tag_name')"
+          VERSION="${TAG_NAME#v}"
+          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$VERSION"
+
+          get_sha() {
+            echo "$RELEASE_JSON" | jq -r --arg name "$1" '.assets[] | select(.name == $name) | .digest' | sed 's/sha256://'
+          }
+
+          SHA_DARWIN_ARM64="$(get_sha 'opencode-darwin-arm64.zip')"
+          SHA_DARWIN_X64="$(get_sha 'opencode-darwin-x64.zip')"
+          SHA_LINUX_ARM64="$(get_sha 'opencode-linux-arm64.tar.gz')"
+          SHA_LINUX_X64="$(get_sha 'opencode-linux-x64.tar.gz')"
+
+          printf 'sha_darwin_arm64=%s\n' "$SHA_DARWIN_ARM64" >> "$GITHUB_OUTPUT"
+          printf 'sha_darwin_x64=%s\n' "$SHA_DARWIN_X64" >> "$GITHUB_OUTPUT"
+          printf 'sha_linux_arm64=%s\n' "$SHA_LINUX_ARM64" >> "$GITHUB_OUTPUT"
+          printf 'sha_linux_x64=%s\n' "$SHA_LINUX_X64" >> "$GITHUB_OUTPUT"
+      - name: Update formula
+        env:
+          VERSION: ${{ steps.github-release.outputs.version }}
+          SHA_DARWIN_ARM64: ${{ steps.github-release.outputs.sha_darwin_arm64 }}
+          SHA_DARWIN_X64: ${{ steps.github-release.outputs.sha_darwin_x64 }}
+          SHA_LINUX_ARM64: ${{ steps.github-release.outputs.sha_linux_arm64 }}
+          SHA_LINUX_X64: ${{ steps.github-release.outputs.sha_linux_x64 }}
+        run: |
+          sed -i "s|version \"[0-9.]*\"|version \"${VERSION}\"|" Formula/opencode.rb
+          sed -i "s|/v[0-9.]*/opencode-|/v${VERSION}/opencode-|g" Formula/opencode.rb
+          sed -i "/opencode-darwin-arm64.zip/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_DARWIN_ARM64}\"|}" Formula/opencode.rb
+          sed -i "/opencode-darwin-x64.zip/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_DARWIN_X64}\"|}" Formula/opencode.rb
+          sed -i "/opencode-linux-arm64.tar.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_LINUX_ARM64}\"|}" Formula/opencode.rb
+          sed -i "/opencode-linux-x64.tar.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_LINUX_X64}\"|}" Formula/opencode.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Update opencode to ${{ steps.github-release.outputs.version }}"
+          file_pattern: Formula/opencode.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

@@ -4,8 +4,8 @@
 class Openspec < Formula
   desc "Spec-driven development for AI coding assistants"
   homepage "https://openspec.dev"
-  url "https://registry.npmjs.org/@fission-ai/openspec/-/openspec-1.0.1.tgz"
-  sha256 "492a542916f009597ae7f22e71fb3dbb5475f34164753c2ca229e5f0b5b2ebba"
+  url "https://registry.npmjs.org/@fission-ai/openspec/-/openspec-1.0.2.tgz"
+  sha256 "f0e95d723d2120f14bdc1ff8f3a587179a177037de44cdad1bb1793ada6a4579"
   license "MIT"
 
   depends_on "node"

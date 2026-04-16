@@ -4,28 +4,28 @@
 class Opencode < Formula
   desc "AI-powered development tool"
   homepage "https://github.com/anomalyco/opencode"
-  version "1.4.4"
+  version "1.4.6"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.4.4/opencode-darwin-arm64.zip"
-      sha256 "8a0f27c579f2973a515adcca982580aafca3eb227b14ae69f4252c00c7f45774"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.4.6/opencode-darwin-arm64.zip"
+      sha256 "16d781944994eaa98a1037b2c367a4ffb9133ae449b15c48984f339ea2c782a5"
     end
     on_intel do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.4.4/opencode-darwin-x64.zip"
-      sha256 "312b37ceb3ed723bd3f3f3d2fd2b8022c6479baf9eeaf5eb451eb19ae9c9d804"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.4.6/opencode-darwin-x64.zip"
+      sha256 "963a0edd24dee19d7af0db88fc9cfd2675d33e6fd20d0046aa52d5aebe724361"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.4.4/opencode-linux-arm64.tar.gz"
-      sha256 "52787b62507a30c92e1bda804ec7ca9496896da74e9b935e307c1d402077593f"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.4.6/opencode-linux-arm64.tar.gz"
+      sha256 "4cbab9cf91280b9443daa27e54bcb8a030ef579857ef2cdd3a8e6521422c3d0d"
     end
     on_intel do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.4.4/opencode-linux-x64.tar.gz"
-      sha256 "b94384213047642ba4b39ebb8d2bbba34bddde26840edf67cae59512c0dfc3be"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.4.6/opencode-linux-x64.tar.gz"
+      sha256 "8ebadcc751be642208257d3de4e4574199ab66e8ebe3f9983e63d784896afc26"
     end
   end
 

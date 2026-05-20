@@ -1,0 +1,107 @@
+name: Update Antigravity CLI Formula
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v6
+      - name: Get latest release manifests
+        id: manifest
+        run: |
+          BASE_URL="https://antigravity-cli-auto-updater-974169037036.us-central1.run.app"
+          fetch() { curl -fsSL "$BASE_URL/manifests/$1.json"; }
+
+          MAC_ARM_JSON="$(fetch darwin_arm64)"
+          MAC_INTEL_JSON="$(fetch darwin_amd64)"
+          LINUX_ARM_JSON="$(fetch linux_arm64)"
+          LINUX_INTEL_JSON="$(fetch linux_amd64)"
+
+          VERSION="$(echo "$MAC_ARM_JSON" | jq -r '.version')"
+          for json in "$MAC_INTEL_JSON" "$LINUX_ARM_JSON" "$LINUX_INTEL_JSON"; do
+            v="$(echo "$json" | jq -r '.version')"
+            if [ "$v" != "$VERSION" ]; then
+              echo "Version mismatch across platforms: ${VERSION} vs ${v}" >&2
+              exit 1
+            fi
+          done
+          printf 'Latest release: %s\n' "$VERSION"
+
+          {
+            echo "version=$VERSION"
+            echo "mac_arm_url=$(echo "$MAC_ARM_JSON" | jq -r '.url')"
+            echo "mac_intel_url=$(echo "$MAC_INTEL_JSON" | jq -r '.url')"
+            echo "linux_arm_url=$(echo "$LINUX_ARM_JSON" | jq -r '.url')"
+            echo "linux_intel_url=$(echo "$LINUX_INTEL_JSON" | jq -r '.url')"
+            echo "mac_arm_sha512=$(echo "$MAC_ARM_JSON" | jq -r '.sha512')"
+            echo "mac_intel_sha512=$(echo "$MAC_INTEL_JSON" | jq -r '.sha512')"
+            echo "linux_arm_sha512=$(echo "$LINUX_ARM_JSON" | jq -r '.sha512')"
+            echo "linux_intel_sha512=$(echo "$LINUX_INTEL_JSON" | jq -r '.sha512')"
+          } >> "$GITHUB_OUTPUT"
+      - name: Compute SHA256 from archives
+        id: checksums
+        env:
+          MAC_ARM_URL: ${{ steps.manifest.outputs.mac_arm_url }}
+          MAC_INTEL_URL: ${{ steps.manifest.outputs.mac_intel_url }}
+          LINUX_ARM_URL: ${{ steps.manifest.outputs.linux_arm_url }}
+          LINUX_INTEL_URL: ${{ steps.manifest.outputs.linux_intel_url }}
+          MAC_ARM_SHA512: ${{ steps.manifest.outputs.mac_arm_sha512 }}
+          MAC_INTEL_SHA512: ${{ steps.manifest.outputs.mac_intel_sha512 }}
+          LINUX_ARM_SHA512: ${{ steps.manifest.outputs.linux_arm_sha512 }}
+          LINUX_INTEL_SHA512: ${{ steps.manifest.outputs.linux_intel_sha512 }}
+        run: |
+          compute_sha256() {
+            local platform="$1" url="$2" expected="$3"
+            local tmp actual sha256
+            tmp="$(mktemp)"
+            curl -fsSL "$url" -o "$tmp"
+            actual="$(sha512sum "$tmp" | awk '{print $1}')"
+            if [ "$actual" != "$expected" ]; then
+              echo "sha512 mismatch for ${platform}: expected ${expected}, got ${actual}" >&2
+              rm -f "$tmp"
+              exit 1
+            fi
+            sha256="$(sha256sum "$tmp" | awk '{print $1}')"
+            rm -f "$tmp"
+            printf '%s=%s\n' "$platform" "$sha256" >> "$GITHUB_OUTPUT"
+          }
+
+          compute_sha256 mac_arm     "$MAC_ARM_URL"     "$MAC_ARM_SHA512"
+          compute_sha256 mac_intel   "$MAC_INTEL_URL"   "$MAC_INTEL_SHA512"
+          compute_sha256 linux_arm   "$LINUX_ARM_URL"   "$LINUX_ARM_SHA512"
+          compute_sha256 linux_intel "$LINUX_INTEL_URL" "$LINUX_INTEL_SHA512"
+      - name: Update formula
+        env:
+          VERSION: ${{ steps.manifest.outputs.version }}
+          MAC_ARM_URL: ${{ steps.manifest.outputs.mac_arm_url }}
+          MAC_INTEL_URL: ${{ steps.manifest.outputs.mac_intel_url }}
+          LINUX_ARM_URL: ${{ steps.manifest.outputs.linux_arm_url }}
+          LINUX_INTEL_URL: ${{ steps.manifest.outputs.linux_intel_url }}
+          MAC_ARM_SHA256: ${{ steps.checksums.outputs.mac_arm }}
+          MAC_INTEL_SHA256: ${{ steps.checksums.outputs.mac_intel }}
+          LINUX_ARM_SHA256: ${{ steps.checksums.outputs.linux_arm }}
+          LINUX_INTEL_SHA256: ${{ steps.checksums.outputs.linux_intel }}
+        run: |
+          sed -i "s|version \"[0-9.]*\"|version \"${VERSION}\"|" Formula/antigravity-cli.rb
+          sed -i "s|url \"[^\"]*cli_mac_arm64\.tar\.gz\"|url \"${MAC_ARM_URL}\"|" Formula/antigravity-cli.rb
+          sed -i "s|url \"[^\"]*cli_mac_x64\.tar\.gz\"|url \"${MAC_INTEL_URL}\"|" Formula/antigravity-cli.rb
+          sed -i "s|url \"[^\"]*cli_linux_arm64\.tar\.gz\"|url \"${LINUX_ARM_URL}\"|" Formula/antigravity-cli.rb
+          sed -i "s|url \"[^\"]*cli_linux_x64\.tar\.gz\"|url \"${LINUX_INTEL_URL}\"|" Formula/antigravity-cli.rb
+          sed -i "/cli_mac_arm64\.tar\.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_ARM_SHA256}\"|}" Formula/antigravity-cli.rb
+          sed -i "/cli_mac_x64\.tar\.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_INTEL_SHA256}\"|}" Formula/antigravity-cli.rb
+          sed -i "/cli_linux_arm64\.tar\.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_ARM_SHA256}\"|}" Formula/antigravity-cli.rb
+          sed -i "/cli_linux_x64\.tar\.gz/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${LINUX_INTEL_SHA256}\"|}" Formula/antigravity-cli.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Update antigravity-cli to ${{ steps.manifest.outputs.version }}"
+          file_pattern: Formula/antigravity-cli.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

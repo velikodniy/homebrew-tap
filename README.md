@@ -17,6 +17,7 @@ brew "<formula>"
 
 | Formula | Description | Install |
 | --- | --- | --- |
+| [antigravity-cli](https://antigravity.google/) | Google Antigravity CLI (`agy`) | `brew install velikodniy/tap/antigravity-cli` |
 | [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
 | [opencode](https://github.com/anomalyco/opencode) | AI-powered development tool | `brew install velikodniy/tap/opencode` |
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |

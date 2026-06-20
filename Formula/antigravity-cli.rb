@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.0.9"
+  version "1.0.10"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.9-6003845613092864/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "7e838169b26a400bb4f0cf56181a1967a33a41c90ac2b9de586d004539f4e602"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.10-6349723456634880/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "c857b5fc7035460359e8e64aee40768e6f5228358b4271bc7ded06c3e6bcd260"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.9-6003845613092864/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "d665f3a4d3c3a57b8ca17742ab2126ffaadd21ac031d57da2fbbb4925cdd770d"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.10-6349723456634880/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "c80d8dc254c5276d8d068d587e34dbcf81042a8516094dadafe399b313ff6eb8"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.9-6003845613092864/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "944d67056b7cc6e4411dca84d9f077b1e460c8cd2a4432d2cdf219421ff73e5a"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.10-6349723456634880/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "4674fabc3681221e54c90d15077c9a97a25ea71222001dabe44bf1576e888593"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.9-6003845613092864/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "cd80f85f43b52b389d7b498d6784f8316d57a9cc62eae23d840c5de368f9c4d5"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.10-6349723456634880/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "6547cf9a37227f26004fa4b805418b1df96f54c57b9723ca7d10864d2610bb0f"
     end
   end
 

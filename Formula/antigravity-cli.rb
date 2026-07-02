@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.0.14"
+  version "1.0.15"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "44fb1db46b67d8566fdafe31ff44722c02ad1655d588cc18029ee349122bb3a3"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.15-5090589570629632/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "61b17465635de291036b50883f4b8c3dd4ac9af22969853019acff526274f567"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "75a2840202f67a25396b5fb758ab77c212636a6a0e934a5b4175c49e79ae6df4"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.15-5090589570629632/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "be3a397eb80c58b3190f4e3860613ba5cac558f763d64a052e46ddbe95a3a57f"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "992653b4de4fe667ee5bd66ca259edd6b88b308f20a31880a77002624204e277"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.15-5090589570629632/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "2a816dcced6aefe8f9cc0281a3d9d00af87a8a6f39789f2030e32c92d3e864f6"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.14-6049473256882176/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "7170d598193ee0addcaba7d8c3a2c2e307ae8622dacf749831128bd1ad3ca458"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.0.15-5090589570629632/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "d125764f115fa53d77081ef1e2a6fa9b3a3fde8799a0d91d811a4bee4b2b2fb7"
     end
   end
 

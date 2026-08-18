@@ -8,8 +8,10 @@ cask "unsloth" do
   homepage "https://unsloth.ai/"
 
   livecheck do
-    url "https://unsloth.ai/download/mac"
-    regex(%r{/v?(\d+(?:\.\d+)+(?:-[^/"]+)?)/Unsloth-Desktop-[^"]+-MacOS\.dmg}i)
+    url "https://github.com/unslothai/unsloth/releases/latest/download/latest.json"
+    strategy :json do |json|
+      json["version"]
+    end
   end
 
   auto_updates true

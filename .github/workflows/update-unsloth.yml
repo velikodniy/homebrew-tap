@@ -1,0 +1,129 @@
+name: Update Unsloth Cask
+
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-unsloth
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      sha256: ${{ steps.release.outputs.sha256 }}
+    steps:
+      - name: Get latest Unsloth Desktop release
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LATEST_URL="https://github.com/unslothai/unsloth/releases/latest/download/latest.json"
+          RELEASE_JSON="$(
+            curl -fsSL --retry 3 --retry-all-errors \
+              --connect-timeout 20 --max-time 60 "$LATEST_URL"
+          )"
+          VERSION="$(
+            jq -er '
+              .version
+              | select(type == "string")
+              | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"))
+            ' <<< "$RELEASE_JSON"
+          )"
+          ASSET_VERSION="${VERSION//[.-]/_}"
+          PLATFORM_URL="$(
+            jq -er '
+              .platforms["darwin-aarch64"].url
+              | select(type == "string" and length > 0)
+            ' <<< "$RELEASE_JSON"
+          )"
+          EXPECTED_PLATFORM_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-${ASSET_VERSION}-ARM64.app.tar.gz"
+          if [[ "$PLATFORM_URL" != "$EXPECTED_PLATFORM_URL" ]]; then
+            printf 'Unexpected updater URL: %s\n' "$PLATFORM_URL" >&2
+            exit 1
+          fi
+
+          DMG_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-${ASSET_VERSION}-MacOS.dmg"
+          DMG_PATH="$(mktemp)"
+          trap 'rm -f "$DMG_PATH"' EXIT
+          curl -fsSL --retry 3 --retry-all-errors \
+            --connect-timeout 20 --max-time 300 "$DMG_URL" -o "$DMG_PATH"
+          SHA256="$(sha256sum "$DMG_PATH" | awk '{print $1}')"
+          if [[ ! "$SHA256" =~ ^[a-f0-9]{64}$ ]]; then
+            printf 'Invalid SHA-256: %s\n' "$SHA256" >&2
+            exit 1
+          fi
+
+          {
+            printf 'version=%s\n' "$VERSION"
+            printf 'sha256=%s\n' "$SHA256"
+          } >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$VERSION"
+
+  validate:
+    needs: metadata
+    runs-on: macos-26
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout tap repository without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-unsloth-cask.py "$VERSION" "$SHA256"
+      - name: Validate cask
+        run: |
+          brew style Casks/unsloth.rb
+          brew livecheck --cask velikodniy/tap/unsloth
+          brew audit --cask --strict --online velikodniy/tap/unsloth
+
+  update:
+    needs:
+      - metadata
+      - validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-unsloth-cask.py "$VERSION" "$SHA256"
+      - name: Verify constrained change
+        shell: bash
+        run: |
+          CHANGED_FILES="$(git status --short --untracked-files=all)"
+          if [[ -n "$CHANGED_FILES" && "$CHANGED_FILES" != " M Casks/unsloth.rb" ]]; then
+            printf 'Unexpected working tree changes:\n%s\n' "$CHANGED_FILES" >&2
+            exit 1
+          fi
+          git diff --check -- Casks/unsloth.rb
+          git diff -- Casks/unsloth.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7
+        with:
+          commit_message: "Update unsloth to ${{ needs.metadata.outputs.version }}"
+          file_pattern: Casks/unsloth.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

@@ -18,11 +18,18 @@ cask "unsloth" do
 
   app "Unsloth.app"
 
+  uninstall_postflight do
+    unsloth_binary = Pathname("~/.local/bin/unsloth").expand_path
+    managed_binary = Pathname("~/.unsloth/studio/unsloth_studio/bin/unsloth").expand_path
+
+    unsloth_binary.unlink if unsloth_binary.symlink? && unsloth_binary.readlink == managed_binary
+  end
+
   uninstall quit: "ai.unsloth.studio"
 
   zap trash: [
     "~/.local/share/unsloth",
-    "~/.unsloth/studio",
+    "~/.unsloth",
     "~/Library/Application Support/ai.unsloth.studio",
     "~/Library/Caches/ai.unsloth.studio",
     "~/Library/Logs/ai.unsloth.studio",

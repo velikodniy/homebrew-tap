@@ -4,7 +4,6 @@
 class Opencode < Formula
   desc "AI-powered development tool"
   homepage "https://github.com/anomalyco/opencode"
-  version "1.18.18"
   license "MIT"
 
   on_macos do

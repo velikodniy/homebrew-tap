@@ -4,7 +4,6 @@
 class Termshark < Formula
   desc "Terminal UI for tshark, inspired by Wireshark"
   homepage "https://github.com/gcla/termshark"
-  version "2.4.0"
   license "MIT"
 
   depends_on "wireshark"

@@ -4,7 +4,6 @@
 class CgtTool < Formula
   desc "CLI for UK Capital Gains Tax calculation"
   homepage "https://github.com/velikodniy/cgt-tool"
-  version "0.15.2"
   license "AGPL-3.0-or-later"
 
   on_macos do
@@ -36,6 +35,6 @@ class CgtTool < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("\#{bin}/cgt-tool --version")
+    assert_match version.to_s, shell_output("#{bin}/cgt-tool --version")
   end
 end

@@ -24,7 +24,6 @@ jobs:
           TAG_NAME="$(gh api repos/velikodniy/cgt-tool/releases/latest -q '.tag_name')"
           VERSION="${TAG_NAME#v}"
           printf 'tag=%s\n' "$TAG_NAME" >> "$GITHUB_OUTPUT"
-          printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
           printf 'Latest release: %s\n' "$VERSION"
       - name: Download checksums
         id: checksums
@@ -45,13 +44,11 @@ jobs:
       - name: Update formula
         env:
           TAG: ${{ steps.github-release.outputs.tag }}
-          VERSION: ${{ steps.github-release.outputs.version }}
           MAC_ARM_SHA256: ${{ steps.checksums.outputs.mac_arm }}
           MAC_INTEL_SHA256: ${{ steps.checksums.outputs.mac_intel }}
           LINUX_ARM_SHA256: ${{ steps.checksums.outputs.linux_arm }}
           LINUX_INTEL_SHA256: ${{ steps.checksums.outputs.linux_intel }}
         run: |
-          sed -i "s|version \"[0-9.]*\"|version \"${VERSION}\"|" Formula/cgt-tool.rb
           sed -i "s|releases/download/v[0-9.]*/|releases/download/${TAG}/|g" Formula/cgt-tool.rb
           sed -i "/cgt-tool-macos-aarch64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_ARM_SHA256}\"|}" Formula/cgt-tool.rb
           sed -i "/cgt-tool-macos-x86_64/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${MAC_INTEL_SHA256}\"|}" Formula/cgt-tool.rb

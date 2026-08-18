@@ -47,7 +47,6 @@ jobs:
           SHA_LINUX_ARM64: ${{ steps.github-release.outputs.sha_linux_arm64 }}
           SHA_LINUX_X64: ${{ steps.github-release.outputs.sha_linux_x64 }}
         run: |
-          sed -i "s|version \"[0-9.]*\"|version \"${VERSION}\"|" Formula/opencode.rb
           sed -i "s|/v[0-9.]*/opencode-|/v${VERSION}/opencode-|g" Formula/opencode.rb
           sed -i "/opencode-darwin-arm64.zip/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_DARWIN_ARM64}\"|}" Formula/opencode.rb
           sed -i "/opencode-darwin-x64.zip/{n;s|sha256 \"[a-f0-9]*\"|sha256 \"${SHA_DARWIN_X64}\"|}" Formula/opencode.rb

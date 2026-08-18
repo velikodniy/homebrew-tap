@@ -1,0 +1,127 @@
+name: Update qmd Formula
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-qmd
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.npm-package.outputs.version }}
+      tarball_url: ${{ steps.npm-package.outputs.tarball_url }}
+      sha256: ${{ steps.npm-package.outputs.sha256 }}
+    steps:
+      - name: Get latest npm package
+        id: npm-package
+        shell: bash
+        run: |
+          set -o pipefail
+          PACKAGE_JSON="$(curl -fsSL https://registry.npmjs.org/@tobilu/qmd/latest)"
+          VERSION="$(
+            jq -er '
+              .version
+              | select(type == "string")
+              | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"))
+            ' <<< "$PACKAGE_JSON"
+          )"
+          TARBALL_URL="$(
+            jq -er '
+              .dist.tarball
+              | select(type == "string" and length > 0)
+            ' <<< "$PACKAGE_JSON"
+          )"
+          EXPECTED_TARBALL_URL="https://registry.npmjs.org/@tobilu/qmd/-/qmd-${VERSION}.tgz"
+          if [[ "$TARBALL_URL" != "$EXPECTED_TARBALL_URL" ]]; then
+            printf 'Unexpected tarball URL: %s\n' "$TARBALL_URL" >&2
+            exit 1
+          fi
+
+          TARBALL_PATH="$(mktemp)"
+          trap 'rm -f "$TARBALL_PATH"' EXIT
+          curl -fsSL "$TARBALL_URL" -o "$TARBALL_PATH"
+          SHA256="$(sha256sum "$TARBALL_PATH" | awk '{print $1}')"
+          if [[ ! "$SHA256" =~ ^[a-f0-9]{64}$ ]]; then
+            printf 'Invalid SHA-256: %s\n' "$SHA256" >&2
+            exit 1
+          fi
+
+          {
+            printf 'version=%s\n' "$VERSION"
+            printf 'tarball_url=%s\n' "$TARBALL_URL"
+            printf 'sha256=%s\n' "$SHA256"
+          } >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$VERSION"
+
+  validate:
+    needs: metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - macos-15-intel
+          - macos-26
+    runs-on: ${{ matrix.os }}
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout tap repository without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update formula
+        env:
+          TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-qmd-formula.py "$TARBALL_URL" "$SHA256"
+      - name: Validate formula
+        run: |
+          brew style Formula/qmd.rb
+          brew install --build-from-source velikodniy/tap/qmd
+          brew test velikodniy/tap/qmd
+
+  update:
+    needs:
+      - metadata
+      - validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Update formula
+        env:
+          TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-qmd-formula.py "$TARBALL_URL" "$SHA256"
+      - name: Verify constrained change
+        shell: bash
+        run: |
+          CHANGED_FILES="$(git status --short --untracked-files=all)"
+          if [[ -n "$CHANGED_FILES" && "$CHANGED_FILES" != " M Formula/qmd.rb" ]]; then
+            printf 'Unexpected working tree changes:\n%s\n' "$CHANGED_FILES" >&2
+            exit 1
+          fi
+          git diff --check -- Formula/qmd.rb
+          git diff -- Formula/qmd.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7
+        with:
+          commit_message: "Update qmd to ${{ needs.metadata.outputs.version }}"
+          file_pattern: Formula/qmd.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

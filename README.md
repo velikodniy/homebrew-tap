@@ -21,4 +21,5 @@ brew "<formula>"
 | [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
 | [opencode](https://github.com/anomalyco/opencode) | AI-powered development tool | `brew install velikodniy/tap/opencode` |
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |
+| [qmd](https://github.com/tobi/qmd) | On-device hybrid search for Markdown files | `brew install velikodniy/tap/qmd` |
 | [termshark](https://github.com/gcla/termshark) | Terminal UI for tshark, inspired by Wireshark | `brew install velikodniy/tap/termshark` |

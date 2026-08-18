@@ -23,3 +23,9 @@ brew "<formula>"
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |
 | [qmd](https://github.com/tobi/qmd) | On-device hybrid search for Markdown files | `brew install velikodniy/tap/qmd` |
 | [termshark](https://github.com/gcla/termshark) | Terminal UI for tshark, inspired by Wireshark | `brew install velikodniy/tap/termshark` |
+
+## Available Casks
+
+| Cask | Description | Install |
+| --- | --- | --- |
+| [unsloth](https://unsloth.ai/) | Local interface for running and training AI models | `brew install --cask velikodniy/tap/unsloth` |

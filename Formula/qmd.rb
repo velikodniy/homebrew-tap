@@ -14,6 +14,13 @@ class Qmd < Formula
   def install
     system "npm", "install", *std_npm_args
     bin.install_symlink libexec.glob("bin/*")
+
+    # Prebuilt sqlite-vec lacks Mach-O headerpad for its full node_modules ID,
+    # so keep it at a short path. Basename must stay vec0.dylib for SQLite.
+    libexec.glob("lib/node_modules/**/sqlite-vec-darwin-*/vec0.dylib").each do |dylib|
+      libexec.install dylib
+      dylib.make_relative_symlink libexec/"vec0.dylib"
+    end
   end
 
   test do

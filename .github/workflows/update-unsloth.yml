@@ -37,20 +37,19 @@ jobs:
               | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"))
             ' <<< "$RELEASE_JSON"
           )"
-          ASSET_VERSION="${VERSION//[.-]/_}"
           PLATFORM_URL="$(
             jq -er '
               .platforms["darwin-aarch64"].url
               | select(type == "string" and length > 0)
             ' <<< "$RELEASE_JSON"
           )"
-          EXPECTED_PLATFORM_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-${ASSET_VERSION}-ARM64.app.tar.gz"
+          EXPECTED_PLATFORM_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-ARM64.app.tar.gz"
           if [[ "$PLATFORM_URL" != "$EXPECTED_PLATFORM_URL" ]]; then
             printf 'Unexpected updater URL: %s\n' "$PLATFORM_URL" >&2
             exit 1
           fi
 
-          DMG_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-${ASSET_VERSION}-MacOS.dmg"
+          DMG_URL="https://github.com/unslothai/unsloth/releases/download/v${VERSION}/Unsloth-Desktop-MacOS.dmg"
           DMG_PATH="$(mktemp)"
           trap 'rm -f "$DMG_PATH"' EXIT
           curl -fsSL --retry 3 --retry-all-errors \

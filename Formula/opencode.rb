@@ -8,23 +8,23 @@ class Opencode < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-darwin-arm64.zip"
-      sha256 "373cf36673836f2ce8847295a0bb2cd2447d03c769b44d84185916bd471b4274"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-darwin-arm64.zip"
+      sha256 "606b09722d98069605e16037fb8c3c7c8ebbfed9ba713079a5efb2e5b065ae27"
     end
     on_intel do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-darwin-x64.zip"
-      sha256 "6b617da75b5773836fcdc7247d7ea2bd39aec942a58b89a041bafb3d4d2a8c23"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-darwin-x64.zip"
+      sha256 "6c5c569f779b197e1df6390c62278bbdf0e73e7cc248a429648680c63a6f3f1c"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-linux-arm64.tar.gz"
-      sha256 "86d3afaf4e8784f9adab189be2a315c12b27ec40a04b70defbe70595c3cc7c65"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-linux-arm64.tar.gz"
+      sha256 "35ef77897425e41b5183a2c21ac4fb1d4d944d82a94e3c920f57b5490af11ac5"
     end
     on_intel do
-      url "https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-linux-x64.tar.gz"
-      sha256 "ab7015cd8113e011a461f30a0c2b77d8299a144ff688cb62e93e8802835d7288"
+      url "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-linux-x64.tar.gz"
+      sha256 "58a3729a6f3432dd6d2917fcc4a949788891a035818646ad480e12c947f56e78"
     end
   end
 

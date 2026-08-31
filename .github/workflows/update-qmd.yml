@@ -75,13 +75,15 @@ jobs:
       contents: read
     steps:
       - name: Checkout tap repository without credentials
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
+        uses: Homebrew/actions/setup-homebrew@2026.08.31.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trust Node formula dependency
+        run: brew trust --formula velikodniy/tap/node
       - name: Update formula
         env:
           TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
@@ -102,7 +104,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout tap repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@v6
       - name: Update formula
         env:
           TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
@@ -119,7 +121,7 @@ jobs:
           git diff --check -- Formula/qmd.rb
           git diff -- Formula/qmd.rb
       - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Update qmd to ${{ needs.metadata.outputs.version }}"
           file_pattern: Formula/qmd.rb

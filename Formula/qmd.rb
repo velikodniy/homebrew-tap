@@ -8,8 +8,8 @@ class Qmd < Formula
   sha256 "2e60829913a0c646234a905cefd61043167a1392fdcfd19bc54f890af89ca0f0"
   license "MIT"
 
-  depends_on "node"
   depends_on "sqlite"
+  depends_on "velikodniy/tap/node"
 
   def install
     system "npm", "install", *std_npm_args

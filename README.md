@@ -13,12 +13,20 @@ tap "velikodniy/tap"
 brew "<formula>"
 ```
 
+The `openspec` and `qmd` formulae depend on this tap's `node` formula.
+On Homebrew versions that enforce tap trust, authorize that dependency once:
+
+```sh
+brew trust --formula velikodniy/tap/node
+```
+
 ## Available Formulae
 
 | Formula | Description | Install |
 | --- | --- | --- |
 | [antigravity-cli](https://antigravity.google/) | Google Antigravity CLI (`agy`) | `brew install velikodniy/tap/antigravity-cli` |
 | [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
+| [node](https://nodejs.org/) | Node.js runtime from upstream prebuilt binaries | `brew install velikodniy/tap/node` |
 | [opencode](https://github.com/anomalyco/opencode) | AI-powered development tool | `brew install velikodniy/tap/opencode` |
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |
 | [qmd](https://github.com/tobi/qmd) | On-device hybrid search for Markdown files | `brew install velikodniy/tap/qmd` |

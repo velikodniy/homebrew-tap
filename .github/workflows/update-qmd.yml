@@ -84,6 +84,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Trust Node formula dependency
         run: brew trust --formula velikodniy/tap/node
+      - name: Unlink preinstalled Node formulae
+        shell: bash
+        run: |
+          while IFS= read -r formula; do
+            case "$formula" in
+              node@*) brew unlink "$formula" ;;
+            esac
+          done < <(brew list --formula)
       - name: Update formula
         env:
           TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}

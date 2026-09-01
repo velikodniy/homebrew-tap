@@ -13,8 +13,9 @@ tap "velikodniy/tap"
 brew "<formula>"
 ```
 
-The `openspec` and `qmd` formulae depend on this tap's `node` formula.
-On Homebrew versions that enforce tap trust, authorize that dependency once:
+This tap's `node` formula is a drop-in fallback for platforms core no longer ships a
+Node bottle for (e.g. Intel macOS). On Homebrew versions that enforce tap trust,
+authorize it first:
 
 ```sh
 brew trust --formula velikodniy/tap/node

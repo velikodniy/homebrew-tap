@@ -33,6 +33,19 @@ class Node < Formula
     prefix.install Dir["*"]
   end
 
+  def caveats
+    <<~EOS
+      This is a drop-in fallback for Homebrew core's "node" formula, for platforms
+      core no longer ships a Node bottle for (e.g. Intel macOS). Once installed, any
+      other formula's plain `depends_on "node"` will use this keg automatically -
+      no need to touch or reinstall those formulae.
+
+      To get a newer Node build later, reinstall this formula explicitly rather
+      than running `brew upgrade node`, which compares against core's "node.rb"
+      and may try to rebuild that instead.
+    EOS
+  end
+
   test do
     assert_equal version.to_s, shell_output("#{bin}/node --version").delete_prefix("v").strip
     assert_path_exists bin/"npm"

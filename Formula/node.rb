@@ -36,10 +36,9 @@ class Node < Formula
 
   def caveats
     <<~EOS
-      This is a drop-in fallback for Homebrew core's "node" formula, for platforms
-      core no longer ships a Node bottle for (e.g. Intel macOS). Once installed, any
-      other formula's plain `depends_on "node"` will use this keg automatically -
-      no need to touch or reinstall those formulae.
+      This is a prebuilt fallback for platforms where Homebrew core no longer ships
+      a current Node bottle, such as Intel macOS. Formulae must use the fully qualified
+      `velikodniy/tap/node` dependency to avoid resolving core's dependency metadata.
 
       To get a newer Node build later, reinstall this formula explicitly rather
       than running `brew upgrade node`, which compares against core's "node.rb"

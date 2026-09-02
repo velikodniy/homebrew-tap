@@ -68,14 +68,14 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
+            node_dependency: node
             node_tap: homebrew/core
-            reuse_runner_dependencies: false
           - os: macos-15-intel
+            node_dependency: velikodniy/tap/node
             node_tap: velikodniy/tap
-            reuse_runner_dependencies: true
           - os: macos-26
+            node_dependency: node
             node_tap: homebrew/core
-            reuse_runner_dependencies: false
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     permissions:
@@ -125,25 +125,21 @@ jobs:
         run: python3 .github/scripts/update-qmd-formula.py "$TARBALL_URL" "$SHA256"
       - name: Validate formula
         env:
+          EXPECTED_NODE_DEPENDENCY: ${{ matrix.node_dependency }}
           EXPECTED_NODE_TAP: ${{ matrix.node_tap }}
-          REUSE_RUNNER_DEPENDENCIES: ${{ matrix.reuse_runner_dependencies }}
         run: |
           brew style Formula/qmd.rb
 
-          INSTALL_ARGS=(--build-from-source)
-          if [[ "$REUSE_RUNNER_DEPENDENCIES" == "true" ]]; then
-            # Intel runners have complete but stale dependencies; verify and reuse them.
-            brew list --versions node sqlite
-            for dependency in node sqlite; do
-              if ! MISSING_DEPENDENCIES="$(brew missing "$dependency")"; then
-                printf 'Missing %s dependencies:\n%s\n' \
-                  "$dependency" "$MISSING_DEPENDENCIES" >&2
-                exit 1
-              fi
-            done
-            INSTALL_ARGS+=(--ignore-dependencies)
+          NODE_DEPENDENCY="$(
+            brew deps --direct --full-name velikodniy/tap/qmd |
+              awk '$0 == "node" || $0 ~ /\/node$/ { print }'
+          )"
+          if [[ "$NODE_DEPENDENCY" != "$EXPECTED_NODE_DEPENDENCY" ]]; then
+            printf 'Expected Node dependency %s, got %s\n' \
+              "$EXPECTED_NODE_DEPENDENCY" "$NODE_DEPENDENCY" >&2
+            exit 1
           fi
-          brew install "${INSTALL_ARGS[@]}" velikodniy/tap/qmd
+          brew install --build-from-source velikodniy/tap/qmd
 
           NODE_PREFIX="$(cd "$(brew --prefix)/opt/node" && pwd -P)"
           NODE_TAP="$(jq -er '.source.tap' "$NODE_PREFIX/INSTALL_RECEIPT.json")"
@@ -157,7 +153,6 @@ jobs:
             printf 'Missing qmd dependencies:\n%s\n' "$MISSING_DEPENDENCIES" >&2
             exit 1
           fi
-          brew linkage --test velikodniy/tap/qmd
           brew test velikodniy/tap/qmd
 
   update:

@@ -8,7 +8,17 @@ class Openspec < Formula
   sha256 "84820b173b57204bd7582a47ddae65e85fd492724172acc8e434e97ea1c05c3f"
   license "MIT"
 
-  depends_on "node"
+  on_macos do
+    on_arm do
+      depends_on "node"
+    end
+    on_intel do
+      depends_on "velikodniy/tap/node"
+    end
+  end
+  on_linux do
+    depends_on "node"
+  end
 
   def install
     system "npm", "install", *std_npm_args

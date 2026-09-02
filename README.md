@@ -33,7 +33,7 @@ formula is force-linked, unlink it first if Homebrew reports a conflict.
 | --- | --- | --- |
 | [antigravity-cli](https://antigravity.google/) | Google Antigravity CLI (`agy`) | `brew install velikodniy/tap/antigravity-cli` |
 | [cgt-tool](https://github.com/velikodniy/cgt-tool) | CLI for UK Capital Gains Tax calculation | `brew install velikodniy/tap/cgt-tool` |
-| [node](https://nodejs.org/) | Drop-in `node` fallback for platforms core no longer ships a Node bottle for (e.g. Intel macOS) | `brew install velikodniy/tap/node` |
+| [node](https://nodejs.org/) | Prebuilt `node` fallback for platforms core no longer ships a Node bottle for (e.g. Intel macOS) | `brew install velikodniy/tap/node` |
 | [opencode](https://github.com/anomalyco/opencode) | AI-powered development tool | `brew install velikodniy/tap/opencode` |
 | [openspec](https://openspec.dev) | Spec-driven development for AI coding assistants | `brew install velikodniy/tap/openspec` |
 | [qmd](https://github.com/tobi/qmd) | On-device hybrid search for Markdown files | `brew install velikodniy/tap/qmd` |

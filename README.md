@@ -13,6 +13,20 @@ tap "velikodniy/tap"
 brew "<formula>"
 ```
 
+### Intel macOS
+
+Homebrew core does not ship its current `node` bottle for Intel macOS. Install
+this tap's prebuilt fallback before `qmd` or `openspec`:
+
+```sh
+brew install velikodniy/tap/node
+brew install velikodniy/tap/qmd
+```
+
+For OpenSpec, replace `qmd` with `openspec` in the second command. Installing the
+fully qualified Node fallback trusts only that formula. If a versioned Node
+formula is force-linked, unlink it first if Homebrew reports a conflict.
+
 ## Available Formulae
 
 | Formula | Description | Install |

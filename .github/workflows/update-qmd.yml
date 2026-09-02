@@ -61,15 +61,20 @@ jobs:
           printf 'Latest release: %s\n' "$VERSION"
 
   validate:
+    name: validate (${{ matrix.os }})
     needs: metadata
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-24.04
-          - macos-15-intel
-          - macos-26
+        include:
+          - os: ubuntu-24.04
+            node_tap: homebrew/core
+          - os: macos-15-intel
+            node_tap: velikodniy/tap
+          - os: macos-26
+            node_tap: homebrew/core
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     permissions:
       actions: read
       contents: read
@@ -82,15 +87,58 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@2026.08.31.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Intel Node fallback
+        if: matrix.node_tap == 'velikodniy/tap'
+        shell: bash
+        run: |
+          while IFS= read -r formula; do
+            case "$formula" in
+              node@*) brew unlink "$formula" ;;
+            esac
+          done < <(brew list --formula)
+
+          brew install velikodniy/tap/node
+          NODE_PREFIX="$(cd "$(brew --prefix)/opt/node" && pwd -P)"
+          NODE_PREFIX="$NODE_PREFIX" node <<'NODE'
+          const major = Number(process.versions.node.split(".")[0]);
+          const expectedExecutable = `${process.env.NODE_PREFIX}/bin/node`;
+          if (
+            process.platform !== "darwin" ||
+            process.arch !== "x64" ||
+            major < 22 ||
+            process.execPath !== expectedExecutable
+          ) {
+            throw new Error(
+              `Unexpected Node runtime: ${process.platform}/${process.arch} ` +
+                `${process.version} at ${process.execPath}`,
+            );
+          }
+          NODE
       - name: Update formula
         env:
           TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
           SHA256: ${{ needs.metadata.outputs.sha256 }}
         run: python3 .github/scripts/update-qmd-formula.py "$TARBALL_URL" "$SHA256"
       - name: Validate formula
+        env:
+          EXPECTED_NODE_TAP: ${{ matrix.node_tap }}
         run: |
           brew style Formula/qmd.rb
           brew install --build-from-source velikodniy/tap/qmd
+
+          NODE_PREFIX="$(cd "$(brew --prefix)/opt/node" && pwd -P)"
+          NODE_TAP="$(jq -er '.source.tap' "$NODE_PREFIX/INSTALL_RECEIPT.json")"
+          if [[ "$NODE_TAP" != "$EXPECTED_NODE_TAP" ]]; then
+            printf 'Expected Node from %s, got %s\n' "$EXPECTED_NODE_TAP" "$NODE_TAP" >&2
+            exit 1
+          fi
+          printf 'Using Node %s from %s\n' "$(node --version)" "$NODE_TAP"
+
+          MISSING_DEPENDENCIES="$(brew missing velikodniy/tap/qmd)"
+          if [[ -n "$MISSING_DEPENDENCIES" ]]; then
+            printf 'Missing qmd dependencies:\n%s\n' "$MISSING_DEPENDENCIES" >&2
+            exit 1
+          fi
           brew test velikodniy/tap/qmd
 
   update:

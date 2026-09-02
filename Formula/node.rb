@@ -31,6 +31,7 @@ class Node < Formula
 
   def install
     prefix.install Dir["*"]
+    libexec.install_symlink bin
   end
 
   def caveats
@@ -50,5 +51,7 @@ class Node < Formula
     assert_equal version.to_s, shell_output("#{bin}/node --version").delete_prefix("v").strip
     assert_path_exists bin/"npm"
     assert_path_exists bin/"npx"
+    assert_path_exists libexec/"bin/node"
+    assert_path_exists libexec/"bin/npm"
   end
 end

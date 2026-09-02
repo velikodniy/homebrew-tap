@@ -69,10 +69,13 @@ jobs:
         include:
           - os: ubuntu-24.04
             node_tap: homebrew/core
+            reuse_runner_dependencies: false
           - os: macos-15-intel
             node_tap: velikodniy/tap
+            reuse_runner_dependencies: true
           - os: macos-26
             node_tap: homebrew/core
+            reuse_runner_dependencies: false
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     permissions:
@@ -114,6 +117,7 @@ jobs:
             );
           }
           NODE
+          brew test velikodniy/tap/node
       - name: Update formula
         env:
           TARBALL_URL: ${{ needs.metadata.outputs.tarball_url }}
@@ -122,9 +126,24 @@ jobs:
       - name: Validate formula
         env:
           EXPECTED_NODE_TAP: ${{ matrix.node_tap }}
+          REUSE_RUNNER_DEPENDENCIES: ${{ matrix.reuse_runner_dependencies }}
         run: |
           brew style Formula/qmd.rb
-          brew install --build-from-source velikodniy/tap/qmd
+
+          INSTALL_ARGS=(--build-from-source)
+          if [[ "$REUSE_RUNNER_DEPENDENCIES" == "true" ]]; then
+            # Intel runners have complete but stale dependencies; verify and reuse them.
+            brew list --versions node sqlite
+            for dependency in node sqlite; do
+              if ! MISSING_DEPENDENCIES="$(brew missing "$dependency")"; then
+                printf 'Missing %s dependencies:\n%s\n' \
+                  "$dependency" "$MISSING_DEPENDENCIES" >&2
+                exit 1
+              fi
+            done
+            INSTALL_ARGS+=(--ignore-dependencies)
+          fi
+          brew install "${INSTALL_ARGS[@]}" velikodniy/tap/qmd
 
           NODE_PREFIX="$(cd "$(brew --prefix)/opt/node" && pwd -P)"
           NODE_TAP="$(jq -er '.source.tap' "$NODE_PREFIX/INSTALL_RECEIPT.json")"
@@ -134,11 +153,11 @@ jobs:
           fi
           printf 'Using Node %s from %s\n' "$(node --version)" "$NODE_TAP"
 
-          MISSING_DEPENDENCIES="$(brew missing velikodniy/tap/qmd)"
-          if [[ -n "$MISSING_DEPENDENCIES" ]]; then
+          if ! MISSING_DEPENDENCIES="$(brew missing velikodniy/tap/qmd)"; then
             printf 'Missing qmd dependencies:\n%s\n' "$MISSING_DEPENDENCIES" >&2
             exit 1
           fi
+          brew linkage --test velikodniy/tap/qmd
           brew test velikodniy/tap/qmd
 
   update:

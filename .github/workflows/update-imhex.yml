@@ -1,0 +1,166 @@
+name: Update ImHex Cask
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-imhex
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      sha256_arm64: ${{ steps.release.outputs.sha256_arm64 }}
+      sha256_intel: ${{ steps.release.outputs.sha256_intel }}
+    steps:
+      - name: Get latest ImHex release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE_JSON="$(gh api repos/WerWolv/ImHex/releases/latest)"
+          TAG_NAME="$(
+            jq -er '
+              .tag_name
+              | select(type == "string" and length > 0)
+            ' <<< "$RELEASE_JSON"
+          )"
+          VERSION="${TAG_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            printf 'Invalid ImHex version: %s\n' "$VERSION" >&2
+            exit 1
+          fi
+
+          ARM_ASSET="imhex-${VERSION}-macOS-arm64.dmg"
+          INTEL_ASSET="imhex-${VERSION}-macOS-x86_64.dmg"
+
+          get_sha256() {
+            local asset_name="$1"
+            local digest
+            digest="$(
+              jq -er --arg name "$asset_name" '
+                .assets[]
+                | select(.name == $name)
+                | .digest // empty
+              ' <<< "$RELEASE_JSON" | sed 's/^sha256://'
+            )"
+
+            if [[ "$digest" =~ ^[a-f0-9]{64}$ ]]; then
+              printf '%s' "$digest"
+              return 0
+            fi
+
+            local download_url
+            download_url="$(
+              jq -er --arg name "$asset_name" '
+                .assets[]
+                | select(.name == $name)
+                | .browser_download_url
+              ' <<< "$RELEASE_JSON"
+            )"
+
+            local tmp
+            tmp="$(mktemp)"
+            trap 'rm -f "$tmp"' RETURN
+            curl -fsSL --retry 3 --retry-all-errors \
+              --connect-timeout 20 --max-time 300 "$download_url" -o "$tmp"
+            local sha
+            sha="$(sha256sum "$tmp" | awk '{print $1}')"
+            if [[ ! "$sha" =~ ^[a-f0-9]{64}$ ]]; then
+              printf 'Invalid SHA-256 for %s: %s\n' "$asset_name" "$sha" >&2
+              return 1
+            fi
+            printf '%s' "$sha"
+          }
+
+          SHA256_ARM64="$(get_sha256 "$ARM_ASSET")"
+          SHA256_INTEL="$(get_sha256 "$INTEL_ASSET")"
+
+          if [[ ! "$SHA256_ARM64" =~ ^[a-f0-9]{64}$ ]]; then
+            printf 'Invalid ARM64 SHA-256: %s\n' "$SHA256_ARM64" >&2
+            exit 1
+          fi
+          if [[ ! "$SHA256_INTEL" =~ ^[a-f0-9]{64}$ ]]; then
+            printf 'Invalid Intel SHA-256: %s\n' "$SHA256_INTEL" >&2
+            exit 1
+          fi
+
+          {
+            printf 'version=%s\n' "$VERSION"
+            printf 'sha256_arm64=%s\n' "$SHA256_ARM64"
+            printf 'sha256_intel=%s\n' "$SHA256_INTEL"
+          } >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$VERSION"
+
+  validate:
+    needs: metadata
+    runs-on: macos-26
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout tap repository without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256_ARM64: ${{ needs.metadata.outputs.sha256_arm64 }}
+          SHA256_INTEL: ${{ needs.metadata.outputs.sha256_intel }}
+        run: python3 .github/scripts/update-imhex-cask.py "$VERSION" "$SHA256_ARM64" "$SHA256_INTEL"
+      - name: Validate cask
+        run: |
+          brew style Casks/imhex.rb
+          brew livecheck --cask velikodniy/tap/imhex
+          brew audit --cask --strict --online velikodniy/tap/imhex
+
+  update:
+    needs:
+      - metadata
+      - validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256_ARM64: ${{ needs.metadata.outputs.sha256_arm64 }}
+          SHA256_INTEL: ${{ needs.metadata.outputs.sha256_intel }}
+        run: python3 .github/scripts/update-imhex-cask.py "$VERSION" "$SHA256_ARM64" "$SHA256_INTEL"
+      - name: Verify constrained change
+        shell: bash
+        run: |
+          CHANGED_FILES="$(git status --short --untracked-files=all)"
+          if [[ -n "$CHANGED_FILES" && "$CHANGED_FILES" != " M Casks/imhex.rb" ]]; then
+            printf 'Unexpected working tree changes:\n%s\n' "$CHANGED_FILES" >&2
+            exit 1
+          fi
+          git diff --check -- Casks/imhex.rb
+          git diff -- Casks/imhex.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7
+        with:
+          commit_message: "Update imhex to ${{ needs.metadata.outputs.version }}"
+          file_pattern: Casks/imhex.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

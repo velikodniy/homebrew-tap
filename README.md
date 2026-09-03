@@ -43,4 +43,5 @@ formula is force-linked, unlink it first if Homebrew reports a conflict.
 
 | Cask | Description | Install |
 | --- | --- | --- |
+| [imhex](https://imhex.werwolv.net/) | Hex editor for reverse engineers | `brew install --cask velikodniy/tap/imhex` |
 | [unsloth](https://unsloth.ai/) | Local interface for running and training AI models | `brew install --cask velikodniy/tap/unsloth` |

@@ -20,11 +20,13 @@ cask "unsloth" do
 
   app "Unsloth.app"
 
-  uninstall_postflight do
-    unsloth_binary = Pathname("~/.local/bin/unsloth").expand_path
-    managed_binary = Pathname("~/.unsloth/studio/unsloth_studio/bin/unsloth").expand_path
-
-    unsloth_binary.unlink if unsloth_binary.symlink? && unsloth_binary.readlink == managed_binary
+  uninstall_postflight_steps do
+    run "/bin/sh", args: ["-c", <<~SHELL], writable_paths: ["~/.local/bin"]
+      if [ -L "$HOME/.local/bin/unsloth" ] &&
+         [ "$(/usr/bin/readlink "$HOME/.local/bin/unsloth")" = "$HOME/.unsloth/studio/unsloth_studio/bin/unsloth" ]; then
+        /bin/rm "$HOME/.local/bin/unsloth"
+      fi
+    SHELL
   end
 
   uninstall quit: "ai.unsloth.studio"

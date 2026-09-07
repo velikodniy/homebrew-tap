@@ -35,6 +35,13 @@ jobs:
       - run: brew test-bot --only-cleanup-before
       - run: brew test-bot --only-setup
       - run: brew test-bot --only-tap-syntax
+        if: runner.os == 'Linux'
+      # Run shared style checks on Linux to avoid building lint dependencies on Intel macOS.
+      - name: Validate tap on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew readall --aliases --os=all --arch=all velikodniy/tap
+          brew audit --skip-style --except=installed --tap=velikodniy/tap
       - run: brew test-bot --only-formulae
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_call'
       - name: Upload bottles as artifact

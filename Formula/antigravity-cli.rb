@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.1.27"
+  version "1.1.28"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.27-5211191891591168/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "e901e5c8fd20ab4c21c01df306030079286d08e6d372cdb535d5ccc7a3f565f4"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.28-5576113066475520/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "8f642cffce8bc14aa3e49d1a75780bb2bd99fe7a3016389627476d9e3ec911eb"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.27-5211191891591168/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "fe5f102bf65be5d478c68fc2f9c3f5b3c5cb2cc788105310b35698fd1af10192"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.28-5576113066475520/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "629887c5baf30c9c1c130a5d3d9fdfebdf0b67ffd45f822d771c0abfb69e405b"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.27-5211191891591168/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "97fc9fe5a6067406cd02cbe4ae6e362c9623a24d33bec486911246c17ceb6a94"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.28-5576113066475520/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "789420d2937393498eb158c4af8321d78c387e31c861db0c79627879509aa8a8"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.27-5211191891591168/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "f874d4f6b8a73c2df660f580f25fb656fcb6e64adbfd746e6692e837fd9a20be"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.1.28-5576113066475520/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "074ff4f732a750ad727aeed5fc82ed34b1fb72fda2a6ceba6c8e652ffd0a94b0"
     end
   end
 

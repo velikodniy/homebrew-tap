@@ -1,6 +1,6 @@
 cask "unsloth" do
-  version "0.1.808-beta"
-  sha256 "e868ea223de0268959de834d0765f92d20a30215c4c697f7e4a208e3265befd6"
+  version "0.1.811-beta"
+  sha256 "f8fe8ceb912f26d5f8595c1ab52e5d1b7068d0344804053f3efc9b05d04e6c0f"
 
   url "https://github.com/unslothai/unsloth/releases/download/v#{version}/Unsloth-Desktop-MacOS.dmg"
   name "Unsloth"
@@ -15,8 +15,8 @@ cask "unsloth" do
   end
 
   auto_updates true
-  depends_on arch:  :arm64,
-             macos: :big_sur
+  depends_on arch: :arm64
+  depends_on :macos
 
   app "Unsloth.app"
 

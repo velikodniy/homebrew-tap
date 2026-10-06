@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.2.16"
+  version "1.2.17"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.16-5594158052802560/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "97b03ea3e90916e0c8a49edea615406f8ec69047dde17228a478c1854445d32a"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.17-6683332533157888/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "700b4c1f3544d547784baa0e4c727019ca7f34944d5269cd636e897a4d6320c6"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.16-5594158052802560/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "c1960f7ae5b4d741af21c17b39cbb280d7bd5973e3deca9aed41ad7cc16c5fa3"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.17-6683332533157888/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "fa91b60d8b8b074e78ed3c845ab7c5428be4b231290ca9a352a6ecc3756c5a0a"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.16-5594158052802560/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "a6d269d2764e5636ab2bcda73b78c587fe9d00ead767aa3974574229585ee0d3"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.17-6683332533157888/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "4a1af1bb91352b72f40fce373a028023bf0e47f5fceb3dfa48249816c0f0caec"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.16-5594158052802560/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "d4247430e04cebdbe1ca93d9ccb483cd2f3daeb4cdb0ace5a71cd130e0bdab84"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.2.17-6683332533157888/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "b0ed8a7c375b5af3af973f08a601e41aebb38bac7e80b922ab54d973a4275493"
     end
   end
 

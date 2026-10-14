@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.3.3"
+  version "1.3.4"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.3-5524738307653632/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "c39926f3312e87eaa56d750658cf442669d0a716f49319d06369be7fa80520eb"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.4-5524158944247808/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "ede28149c568c69f549b796a6142ba592b44294111acf8b79cdbffae74e72147"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.3-5524738307653632/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "78547d90bfd1559a87ba63e941f9332a0d1889d2de415da337dedec8dc9aa239"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.4-5524158944247808/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "f4e5bc649cbbdc903516f5918194ffc74dc78014806dda6a6c6403df5382b4a2"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.3-5524738307653632/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "a9d23fe1d7e5c8471881ab37723571a8d3f24e6ecace8fe082f8c0c8d90f41ca"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.4-5524158944247808/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "56161a1849eff501fead19bc7c477ee80f26776bf470fda01c119cc345a1818c"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.3-5524738307653632/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "8ee3ca32574c431285efbf4d4732f7f8d53e959370bc4a61646e4fa496f7f2b6"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.3.4-5524158944247808/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "db5e81e8dee72d282cb1fb5fcd98dc5a43680730d71e3d637a67c874ec077ad3"
     end
   end
 

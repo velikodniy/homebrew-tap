@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.4.9"
+  version "1.4.10"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.9-4962164969177088/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "64204e14975e632ae7f26912bed48d49ffe17bb2719093ca38c00276b1f134f0"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.10-5501573669978112/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "05a7fc6dd348d2003787f3a750ffe9e9b067c44504002c6a834412831ff30c15"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.9-4962164969177088/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "93034436d465082130891a284f0b25d0cfd46be576c09e78c1ef6dc2ff2fff77"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.10-5501573669978112/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "926992cc3ac63bffa05ad126104f92a23df3e76951bca1dc9e5fb9f1d135aa76"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.9-4962164969177088/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "0e75190d5aa48b0f7623b201cfef542cd36a1279b3d28afa7fa099983a073493"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.10-5501573669978112/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "107b7499ca90018ab2b6c1b636cdec4251dfd836656526845e354be1bfe05eba"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.9-4962164969177088/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "3d84e3a461b9cbf9ffc9deede155a01921380e964f51a82c0bc505db80ae8525"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.10-5501573669978112/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "ed0526231e3916b6cc1b025cf356862e88cc036e27c3c5eae5a580495fc79773"
     end
   end
 

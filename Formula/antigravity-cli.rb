@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.4.12"
+  version "1.5.0"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.12-4768735748292608/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "4c989b5ccf0e39c99a1ce6df82410abb628d4d83e0d3183527702df744d9c589"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.0-5269980577660928/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "105fb4f6181665f85cea79a9a26ef9e106ea0666b9a0904bb63a45e64951286b"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.12-4768735748292608/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "624d01369df5841f64555741dd09d3ab4a6d174699a4ded896a5180c81f2c2de"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.0-5269980577660928/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "306bfdf4d9b14d949aa5b297fd234fa6713ce7f6a4bd4e85aaba0001a1ab69a4"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.12-4768735748292608/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "30dd61ebe1f0a8829057ea2de29dad08c710dd972ce4c02949f51e632135a86b"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.0-5269980577660928/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "87e73a5ab4ecb3a9668660d259dafd13f5443149da0113664d59129a21a62ba4"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.12-4768735748292608/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "3368d1923fc869f21ec8fce83252a8c96c89283aac9393958ac91fbf7a3949e4"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.0-5269980577660928/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "f65e365a67be49abdaf92f5669c3157bd4b9c569f6b9f448340b00ca261b0f01"
     end
   end
 

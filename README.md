@@ -44,6 +44,7 @@ formula is force-linked, unlink it first if Homebrew reports a conflict.
 | Cask | Description | Install |
 | --- | --- | --- |
 | [deja](https://github.com/velikodniy/deja) | DjVu document viewer for macOS (Apple Silicon and Intel) | `brew install --cask velikodniy/tap/deja` |
+| [greycard](https://greycard.org/) | Color-accurate RAW photo editor | `brew install --cask velikodniy/tap/greycard` |
 | [imhex](https://imhex.werwolv.net/) | Hex editor for reverse engineers | `brew install --cask velikodniy/tap/imhex` |
 | [rapidraw](https://github.com/CyberTimon/RapidRAW) | GPU-accelerated, non-destructive RAW image editor | `brew install --cask velikodniy/tap/rapidraw` |
 | [unsloth](https://unsloth.ai/) | Local interface for running and training AI models | `brew install --cask velikodniy/tap/unsloth` |

@@ -1,0 +1,134 @@
+name: Update Deja Cask
+
+on:
+  repository_dispatch:
+    types: [deja-release]
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-deja
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      sha256: ${{ steps.release.outputs.sha256 }}
+    steps:
+      - name: Get latest Deja release
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_JSON="$(gh api repos/velikodniy/deja/releases/latest)"
+          TAG="$(
+            jq -er '
+              select(.draft == false and .prerelease == false)
+              | .tag_name
+              | select(type == "string")
+              | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"))
+            ' <<< "$RELEASE_JSON"
+          )"
+          VERSION="${TAG#v}"
+          ASSET_NAME="Deja_${VERSION}_universal.dmg"
+          DMG_URL="$(
+            jq -er --arg name "$ASSET_NAME" '
+              [.assets[] | select(.name == $name)]
+              | select(length == 1)
+              | .[0].browser_download_url
+              | select(type == "string" and length > 0)
+            ' <<< "$RELEASE_JSON"
+          )"
+          EXPECTED_DMG_URL="https://github.com/velikodniy/deja/releases/download/${TAG}/${ASSET_NAME}"
+          if [[ "$DMG_URL" != "$EXPECTED_DMG_URL" ]]; then
+            printf 'Unexpected DMG URL: %s\n' "$DMG_URL" >&2
+            exit 1
+          fi
+
+          DMG_PATH="$(mktemp)"
+          trap 'rm -f "$DMG_PATH"' EXIT
+          curl -fsSL --retry 3 --retry-all-errors \
+            --connect-timeout 20 --max-time 300 "$DMG_URL" -o "$DMG_PATH"
+          SHA256="$(sha256sum "$DMG_PATH" | awk '{print $1}')"
+          if [[ ! "$SHA256" =~ ^[a-f0-9]{64}$ ]]; then
+            printf 'Invalid SHA-256: %s\n' "$SHA256" >&2
+            exit 1
+          fi
+
+          {
+            printf 'tag=%s\n' "$TAG"
+            printf 'version=%s\n' "$VERSION"
+            printf 'sha256=%s\n' "$SHA256"
+          } >> "$GITHUB_OUTPUT"
+          printf 'Latest release: %s\n' "$TAG"
+
+  validate:
+    needs: metadata
+    runs-on: macos-26
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout tap repository without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@8f3d1ec8a696b3b9d9a6c3696b6c73033cab69e4 # main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-deja-cask.py "$VERSION" "$SHA256"
+      - name: Validate cask
+        run: |
+          brew style Casks/deja.rb
+          brew livecheck --cask velikodniy/tap/deja
+          brew audit --cask --strict --online velikodniy/tap/deja
+
+  update:
+    needs:
+      - metadata
+      - validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Update cask
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          SHA256: ${{ needs.metadata.outputs.sha256 }}
+        run: python3 .github/scripts/update-deja-cask.py "$VERSION" "$SHA256"
+      - name: Verify constrained change
+        shell: bash
+        run: |
+          CHANGED_FILES="$(git status --short --untracked-files=all)"
+          if [[ -n "$CHANGED_FILES" && "$CHANGED_FILES" != " M Casks/deja.rb" ]]; then
+            printf 'Unexpected working tree changes:\n%s\n' "$CHANGED_FILES" >&2
+            exit 1
+          fi
+          git diff --check -- Casks/deja.rb
+          git diff -- Casks/deja.rb
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7
+        with:
+          commit_message: "Update deja to ${{ needs.metadata.outputs.tag }}"
+          file_pattern: Casks/deja.rb
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

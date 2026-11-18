@@ -1,9 +1,9 @@
 cask "greycard" do
   arch arm: "aarch64", intel: "x86_64"
 
-  version "0.11.0"
-  sha256 arm:   "781e53f9097a233431df3ee146c57ce87f470a004d8ac415a0a7d411b137be90",
-         intel: "1dab0b6b4d8d0af3dd0fb3a088f8e8663c4521c04a8aed2a3b60bc5de0828c4f"
+  version "0.12.0"
+  sha256 arm:   "58aacf8c1e2bf4d97c5a5cbf277f9ccd3c2127c4f49abdf80e7eb1c2d5ec4cd7",
+         intel: "44c6b76535d252656cf5d086d82e679d9eddd7180776f1089915eec6049be42d"
 
   url "https://github.com/jessolmstead/greycard/releases/download/v#{version}/greycard-#{version}-#{arch}-macos.dmg"
   name "greycard"

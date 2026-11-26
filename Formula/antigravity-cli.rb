@@ -4,28 +4,28 @@
 class AntigravityCli < Formula
   desc "Google Antigravity CLI (agy)"
   homepage "https://antigravity.google/"
-  version "1.5.16"
+  version "1.5.18"
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.16-5250855658717184/darwin-arm/cli_mac_arm64.tar.gz"
-      sha256 "ba47202f712de4c4a78fd787d81ba206d73e11c97572fc69420f29a77efc8d95"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.18-6386224290725888/darwin-arm/cli_mac_arm64.tar.gz"
+      sha256 "f154fdbe81885c36565b74615a9ef6c7c92fb9c2bc29acb0a300bc5990691871"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.16-5250855658717184/darwin-x64/cli_mac_x64.tar.gz"
-      sha256 "14cd76a31e42ad461d6f8adf7631306cac37553f547aba0a0f111b0824d21c0c"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.18-6386224290725888/darwin-x64/cli_mac_x64.tar.gz"
+      sha256 "113e058df8c3e488c90f64ebb1dbdf7763ca01af7027ecfd73ae189f3c530366"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.16-5250855658717184/linux-arm/cli_linux_arm64.tar.gz"
-      sha256 "7ddeec790084e550af18adb04a5b6c5fdf2db3e1026854f49901a04cb4265c7e"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.18-6386224290725888/linux-arm/cli_linux_arm64.tar.gz"
+      sha256 "97799abac91ba0b29b77598b62f903b866461da17680263a182fef2cb796ab0d"
     end
     on_intel do
-      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.16-5250855658717184/linux-x64/cli_linux_x64.tar.gz"
-      sha256 "9bdab234d06bad1a61be2321072652eb06be78baff1acbfae47331da5a090abc"
+      url "https://storage.googleapis.com/antigravity-public/antigravity-cli/1.5.18-6386224290725888/linux-x64/cli_linux_x64.tar.gz"
+      sha256 "a4960723ed9cf5b5ac72ed541db8df4d62741795261eb93a4681006ccb23d5ad"
     end
   end
 
